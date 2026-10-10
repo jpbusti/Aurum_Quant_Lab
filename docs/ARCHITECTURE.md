@@ -1,6 +1,6 @@
 # Arquitectura de AURUM Quant Lab
 
-Estado: **fases A a E completadas** (las tres candidatas de la ronda 1, REJECTED); **ronda 2 de la fase D implementada y pre-registrada, sin backtest** (docs/PREREGISTRO_RONDA2.md). El resto es diseño; cada módulo se
+Estado: **fases A a E completadas** con dos rondas de hipótesis: las 6 candidatas, REJECTED (docs/PHASE_E_RESULTS.md y docs/RONDA2_RESULTS.md). Pendiente: comprobación horaria en vivo, ruptura de Londres y paper trading (fase G). El resto es diseño; cada módulo se
 crea en su fase y solo cuando pasan las pruebas de la anterior.
 
 ## Principios
@@ -125,4 +125,4 @@ MT5 (solo lectura) → data/ (raw Parquet + metadatos) → validation/ (informe 
 4. **Modelo de spread**: calibrado en la fase C (COST_MODEL.md). Pendiente: el exceso por hora se
    midió en 2026 y se aplica a 2017-2025 sin poder verificarlo.
 5. **Slippage**: los valores de los escenarios son supuestos; medirlos en paper trading (fase G).
-6. **Zona horaria**: confirmar Nueva York + 7 h en vivo con el mercado abierto.
+6. **Zona horaria**: Nueva York + 7 h confirmada con datos históricos (TIMEZONE.md); queda la comprobación en vivo del domingo.

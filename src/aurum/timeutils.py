@@ -1,6 +1,6 @@
 """Conversión de la hora del servidor a UTC (docs/TIMEZONE.md).
 
-Convención adoptada, pendiente de confirmación en vivo: hora del servidor =
+Convención confirmada con datos históricos 2018-2026 (docs/TIMEZONE.md): hora del servidor =
 hora de Nueva York + 7 h. El desfase respecto a UTC cambia con el horario de
 verano de EE. UU. (UTC+3 en verano, UTC+2 en invierno): no es constante.
 """

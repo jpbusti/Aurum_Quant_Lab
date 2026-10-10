@@ -13,8 +13,8 @@ refutar, no un resultado: ningún informe de este proyecto garantiza beneficios 
 | A | Inspección del entorno y arquitectura | hecha |
 | B | Ingesta de datos e integridad | hecha |
 | C | Motor de backtesting y pruebas | hecha |
-| D | Estrategias de referencia | ronda 1 hecha; ronda 2 implementada y pre-registrada, sin backtest |
-| E | Evaluación estadística y walk-forward | ronda 1 hecha: 3 candidatas REJECTED |
+| D | Estrategias de referencia | rondas 1 y 2 hechas |
+| E | Evaluación estadística y walk-forward | ronda 1 y filtro de la ronda 2 hechos: 6 candidatas REJECTED |
 | F | Selección de candidatos | pendiente |
 | G | Paper trading en demo | pendiente |
 | H | Viabilidad de capital | pendiente |
@@ -77,5 +77,5 @@ contra el terminal real (solo lectura) y contra los datos descargados.
 - [docs/COST_MODEL.md](docs/COST_MODEL.md): perfil de spread por hora, modelo de costes y escenarios.
 - [docs/STRATEGY_RESEARCH.md](docs/STRATEGY_RESEARCH.md): fichas de las referencias y candidatas, y registro de variantes.
 - [docs/PREREGISTRO_PHASE_E.md](docs/PREREGISTRO_PHASE_E.md) y [docs/PHASE_E_RESULTS.md](docs/PHASE_E_RESULTS.md): evaluación pre-registrada y resultados.
-- [docs/PREREGISTRO_RONDA2.md](docs/PREREGISTRO_RONDA2.md): pre-registro de la ronda 2 (prueba final gastada, paper como evidencia principal).
+- [docs/PREREGISTRO_RONDA2.md](docs/PREREGISTRO_RONDA2.md) y [docs/RONDA2_RESULTS.md](docs/RONDA2_RESULTS.md): ronda 2 (prueba final gastada, paper como evidencia principal) y su filtro.
 - [docs/BACKTEST_ENGINE.md](docs/BACKTEST_ENGINE.md): reglas de ejecución, alineación sin fuga, riesgo y pruebas del motor.

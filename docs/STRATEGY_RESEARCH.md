@@ -1,7 +1,7 @@
 # Investigación de estrategias de AURUM Quant Lab
 
 Fase D, 2026-10-10; resultados de la fase E añadidos el mismo día ([PHASE_E_RESULTS.md](PHASE_E_RESULTS.md)).
-Sin optimización. **Las tres candidatas fueron rechazadas en la fase E**: ninguna tiene ventaja en nuestros datos. Código en `src/aurum/strategies/`,
+Sin optimización. **Las tres candidatas de la fase E y las tres del filtro de la ronda 2 fueron rechazadas**: ninguna tiene ventaja en nuestros datos. Código en `src/aurum/strategies/`,
 registro de variantes en `configs/research.yaml`.
 
 ## Cómo leer estas fichas
@@ -27,10 +27,10 @@ fuente original.
 | CAND-ORB-NY-v1 | candidata | 1 | 1 | **REJECTED** |
 | CAND-IMOM-NY-v1 | candidata | 1 | 1 | **REJECTED** |
 | CAND-TREND-ATR-v1 | candidata | 1 | 1 | **REJECTED** |
-| CAND-VOLX-NR7-v1 | candidata, ronda 2 | 1 | 0 | implementada |
-| CAND-REGIME-HMM-v1 | candidata, ronda 2 | 1 | 0 | implementada |
-| CAND-VWAP-MR-v1 | candidata, ronda 2 | 1 | 0 | implementada |
-| **Total** | | **9** | **6** | |
+| CAND-VOLX-NR7-v1 | candidata, ronda 2 | 1 | 1 | **REJECTED** |
+| CAND-REGIME-HMM-v1 | candidata, ronda 2 | 1 | 1 | **REJECTED** |
+| CAND-VWAP-MR-v1 | candidata, ronda 2 | 1 | 1 | **REJECTED** |
+| **Total** | | **9** | **9** | |
 
 Además: **H-PAPER-SMACROSS-v1** (REF-SMACROSS-v1 solo en paper trading con datos posteriores al
 2026-10-10, sin backtest) y **CAND-SESSION-LONDON** en espera de la confirmación horaria.
@@ -263,9 +263,13 @@ backtest solo sirve de filtro.
    el spread más el slippage. Hay pocos días NR7 al año.
 10. **Hipótesis a contrastar**: tras un día NR7, la primera ruptura de su rango en la sesión
     europea o americana continúa en su dirección lo suficiente para cubrir los costes.
-11. **Variantes probadas**: 0 (1 definida).
-12. **Resultados**: no disponibles.
-13. **Decisión**: pendiente del filtro de backtest y, si lo supera, del paper trading.
+11. **Variantes probadas**: 1 (filtro de la ronda 2, 2026-10-10).
+12. **Resultados** (base): solo 135 señales en 9,5 años. In-sample: PF 0,91 con 81 operaciones.
+    Validación: PF 1,17 con 31 operaciones (placebo p = 0,03). Prueba final: PF 0,36 con **7
+    operaciones**. DSR 0,001. Ver [RONDA2_RESULTS.md](RONDA2_RESULTS.md).
+13. **Decisión: REJECTED** (falla 6 de 7 estrictas). Causa probable (inferida): con unas 14
+    operaciones al año no hay muestra para distinguir nada del ruido, y la poca que hay no muestra
+    ventaja estable (PF anual entre 0,15 y 3,13).
 
 ---
 
@@ -316,9 +320,14 @@ backtest solo sirve de filtro.
 10. **Hipótesis a contrastar**: en XAUUSD, el signo del retorno de 20 días anticipa el movimiento
     intradía de las sesiones europea y americana cuando el HMM indica régimen tranquilo, y no
     cuando indica régimen volátil.
-11. **Variantes probadas**: 0 (1 definida).
-12. **Resultados**: no disponibles.
-13. **Decisión**: pendiente del filtro de backtest y, si lo supera, del paper trading.
+11. **Variantes probadas**: 1 (filtro de la ronda 2, 2026-10-10).
+12. **Resultados** (base): in-sample PF 1,09 con 533 operaciones (negativo en el escenario de
+    estrés); validación PF 0,87 con 200; prueba final **0 operaciones**. El control de volumen
+    mínimo rechazó sus 188 señales de 2025-2026: con stop de 2 ATR diarios, 0,01 lotes arriesgan
+    de 56 a 373 USD, por encima del 0,5 % del balance virtual de 10 000 USD.
+13. **Decisión: REJECTED** según el criterio pre-registrado (falla 6 de 7 estrictas). La hipótesis
+    no llegó a contrastarse en la prueba final por el tamaño de posición. Cambiar stop, riesgo o
+    balance sería una variante nueva.
 
 ---
 
@@ -354,9 +363,12 @@ backtest solo sirve de filtro.
 10. **Hipótesis a contrastar**: en la sesión de Nueva York, las desviaciones de más de 2 ATR
     respecto al VWAP del día ponderado por ticks tienden a volver hacia él lo suficiente para
     cubrir los costes.
-11. **Variantes probadas**: 0 (1 definida).
-12. **Resultados**: no disponibles.
-13. **Decisión**: pendiente del filtro de backtest y, si lo supera, del paper trading.
+11. **Variantes probadas**: 1 (filtro de la ronda 2, 2026-10-10).
+12. **Resultados** (base): 5 562 operaciones en total. In-sample PF 0,88, validación 0,93, prueba
+    final 0,90 (IC90 0,81-1,00), DD 24,2 % y Sharpe −0,97. Placebo p = 0,66 y DSR 0,001. PF por
+    debajo de 1 **todos los años** (0,76-0,94).
+13. **Decisión: REJECTED** (falla 6 de 7 estrictas). Causa probable (inferida): las desviaciones
+    respecto al VWAP por ticks no revierten lo suficiente para pagar el spread y el stop.
 
 ---
 
