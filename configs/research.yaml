@@ -51,15 +51,52 @@ strategies:
     variants_tested: 1
     params: {donchian_n: 20, h1_sma: 50, atr_n: 14, stop_atr: 2.0, target_atr: 4.0,
              max_hold_s: 86400, ny_start: "03:00", ny_end: "15:00"}
+  # --- Ronda 2 (pre-registro docs/PREREGISTRO_RONDA2.md) -----------------------------------
+  CAND-VOLX-NR7-v1:
+    kind: candidata
+    round: 2
+    status: implementada, sin probar
+    variants_defined: 1
+    variants_tested: 0
+    params: {lookback_days: 7, entry_start_ny: "03:00", entry_end_ny: "12:00", exit_ny: "15:45"}
+  CAND-REGIME-HMM-v1:
+    kind: candidata
+    round: 2
+    status: implementada, sin probar
+    variants_defined: 1
+    variants_tested: 0
+    params: {min_train_days: 250, calm_prob_max: 0.5, momentum_days: 20, atr_days: 14, stop_atr: 2.0,
+             decision_ny: "03:00", exit_ny: "15:45"}
+  CAND-VWAP-MR-v1:
+    kind: candidata
+    round: 2
+    status: implementada, sin probar
+    variants_defined: 1
+    variants_tested: 0
+    params: {z_entry: 2.0, stop_atr: 1.5, atr_n: 14, min_bars: 8, entry_start_ny: "08:00",
+             entry_end_ny: "14:00", exit_ny: "15:45"}
+
+# Hipótesis solo para paper trading con datos futuros (sin backtest).
+paper_only:
+  H-PAPER-SMACROSS-v1:
+    strategy: REF-SMACROSS-v1
+    params: igual que REF-SMACROSS-v1
+    registered: "2026-10-10"
+    evidence: solo datos posteriores a la fecha de registro (paper trading, fase G)
+    status: pre-registrada, pendiente de la infraestructura de paper trading
+
+# Hipótesis en espera.
+on_hold:
+  - id: CAND-SESSION-LONDON
+    reason: espera la confirmación en vivo de la zona horaria (domingo 2026-10-11)
 
 # Hipótesis consideradas y no implementadas (se registran para no ocultarlas):
 not_implemented:
   - id: CAND-SESSION-LONDON
     reason: >-
-      La apertura de Londres en hora de Nueva York cambia con el desfase entre los horarios de
-      verano de Reino Unido y EE. UU.; requiere la conversión a UTC, pendiente de confirmar en vivo.
-      Las fuentes encontradas son material divulgativo, sin metodología reproducible.
+      Ronda 1: la apertura de Londres en hora de Nueva York cambia con el desfase entre los horarios
+      de verano de Reino Unido y EE. UU.; requiere la conversión a UTC. En la ronda 2 pasa a on_hold.
   - id: CAND-VWAP-MR
     reason: >-
-      El CFD no tiene volumen real fiable (real_volume sin verificar, fase B); un VWAP con
-      tick_volume sería otra hipótesis distinta. Se deja para más adelante.
+      Ronda 1: sin volumen real verificado. En la ronda 2 se implementa como CAND-VWAP-MR-v1 con
+      tick_volume, documentando la limitación.

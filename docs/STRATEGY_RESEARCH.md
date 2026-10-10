@@ -27,16 +27,22 @@ fuente original.
 | CAND-ORB-NY-v1 | candidata | 1 | 1 | **REJECTED** |
 | CAND-IMOM-NY-v1 | candidata | 1 | 1 | **REJECTED** |
 | CAND-TREND-ATR-v1 | candidata | 1 | 1 | **REJECTED** |
-| **Total** | | **6** | **6** | |
+| CAND-VOLX-NR7-v1 | candidata, ronda 2 | 1 | 0 | implementada |
+| CAND-REGIME-HMM-v1 | candidata, ronda 2 | 1 | 0 | implementada |
+| CAND-VWAP-MR-v1 | candidata, ronda 2 | 1 | 0 | implementada |
+| **Total** | | **9** | **6** | |
 
-Hipótesis consideradas y **no implementadas** (se registran para no ocultarlas):
+Además: **H-PAPER-SMACROSS-v1** (REF-SMACROSS-v1 solo en paper trading con datos posteriores al
+2026-10-10, sin backtest) y **CAND-SESSION-LONDON** en espera de la confirmación horaria.
+
+Hipótesis no implementadas en la ronda 1 (se registran para no ocultarlas):
 
 - **Ruptura de la sesión de Londres**: la apertura de Londres en hora de Nueva York cambia
   cuando los horarios de verano de Reino Unido y EE. UU. no coinciden. Eso exige la conversión a
   UTC, todavía sin confirmar en vivo. Además, solo encontré material divulgativo sin metodología
-  reproducible.
-- **Reversión a la media sobre VWAP**: el CFD no tiene un volumen real verificado (fase B). Un
-  VWAP con `tick_volume` sería una hipótesis distinta de la publicada.
+  reproducible. En la ronda 2 queda **en espera** hasta la confirmación horaria.
+- **Reversión a la media sobre VWAP**: el CFD no tiene un volumen real verificado (fase B). En la
+  ronda 2 se implementa con `tick_volume`, declarando la limitación (CAND-VWAP-MR-v1).
 
 Cualquier variante nueva, cambio de parámetro o prueba futura se añade a este registro y a
 `configs/research.yaml`, también si falla. El número de pruebas alimenta el DSR de la fase E.
@@ -211,6 +217,149 @@ Cualquier variante nueva, cambio de parámetro o prueba futura se añade a este 
 
 ---
 
+## Ronda 2 (pre-registro: [PREREGISTRO_RONDA2.md](PREREGISTRO_RONDA2.md))
+
+Estas hipótesis se diseñaron después de ver la fase E. La prueba final 2025-2026 está
+parcialmente gastada y la evidencia principal será el paper trading con datos futuros: el
+backtest solo sirve de filtro.
+
+---
+
+## CAND-VOLX-NR7-v1: expansión tras un día de rango mínimo (NR7)
+
+1. **Nombre e identificador**: ruptura tras día NR7. `CAND-VOLX-NR7-v1`.
+2. **Fuente, enlace y fecha de consulta (2026-10-10)**:
+   - T. Crabel, *Day Trading with Short Term Price Patterns and Opening Range Breakout*, Traders
+     Press, 1990. **Libro no consultado directamente**: la definición de NR7 sale de resúmenes
+     secundarios.
+   - Backtests divulgativos de NR7 (por ejemplo, https://oxfordstrat.com/trading-strategies/narrow-range/),
+     citados **sin valor de evidencia**. Según ese resumen, tras costes el patrón no es operable
+     sin reglas adicionales.
+3. **Evidencia y limitaciones**:
+   - Publicada: un día NR7 tiene un rango menor que cada uno de los 6 días anteriores. El libro lo
+     opera con rupturas desde la apertura (*stretch*). Es material práctico, no un estudio con
+     prueba fuera de muestra.
+   - Limitaciones: no hay evidencia académica en oro. Que tras la compresión llegue expansión no
+     dice nada de la **dirección**, y eso es lo que se contrasta.
+4. **Reglas exactas**:
+   - Los días son días del servidor (de 17:00 a 17:00 NY), construidos con velas H1 cerradas.
+     Solo cuentan días completos.
+   - Si el último día completo tiene un rango menor que cada uno de los 6 días completos anteriores
+     (NR7), hoy se busca la primera ruptura de su máximo o su mínimo.
+   - Entre las 03:00 y las 12:00 NY: compra si una vela M15 cierra por encima del máximo del día
+     NR7, y venta si cierra por debajo de su mínimo.
+   - Solo cuenta la primera ruptura del día. Si antes de esa vela ya hubo un cierre M15 fuera del
+     rango, incluso antes de las 03:00 NY, ese día no se opera.
+   - Stop en el extremo opuesto del día NR7, sin objetivo y con cierre a las 15:45 NY.
+5. **Marco temporal y condiciones**: contexto diario (desde H1) y señal en M15, entre las 03:00 y
+   las 12:00 NY.
+6. **Indicadores y parámetros**: ventana de 7 días (la definición de Crabel), entradas de 03:00 a
+   12:00 NY y salida a las 15:45 NY. Los horarios son una convención nuestra.
+7. **Stop, objetivo y gestión**: stop fijo en el extremo opuesto, sin objetivo y con cierre por tiempo.
+8. **Supuestos de ejecución**: la entrada es a mercado en la siguiente barra M1, no con una orden
+   stop en el nivel, porque el motor no tiene órdenes pendientes. Por eso se entra algo peor que
+   el nivel de ruptura.
+9. **Riesgos conocidos**: falsas rupturas. Un día NR7 muy estrecho puede dejar un stop menor que
+   el spread más el slippage. Hay pocos días NR7 al año.
+10. **Hipótesis a contrastar**: tras un día NR7, la primera ruptura de su rango en la sesión
+    europea o americana continúa en su dirección lo suficiente para cubrir los costes.
+11. **Variantes probadas**: 0 (1 definida).
+12. **Resultados**: no disponibles.
+13. **Decisión**: pendiente del filtro de backtest y, si lo supera, del paper trading.
+
+---
+
+## CAND-REGIME-HMM-v1: momentum diario solo en régimen tranquilo
+
+1. **Nombre e identificador**: momentum condicionado a un régimen HMM. `CAND-REGIME-HMM-v1`.
+2. **Fuente, enlace y fecha de consulta (2026-10-10)**:
+   - J. D. Hamilton, "A New Approach to the Economic Analysis of Nonstationary Time Series and the
+     Business Cycle", *Econometrica* 57(2), 357-384, 1989.
+     https://ideas.repec.org/a/ecm/emetrp/v57y1989i2p357-84.html . Es el modelo de cambio de
+     régimen de Markov. Consulté el resumen; el texto completo es de pago.
+   - K. Daniel y T. J. Moskowitz, "Momentum crashes", *Journal of Financial Economics* 122(2),
+     221-247, 2016. https://www.nber.org/papers/w20439 . Las caídas del momentum se concentran en
+     estados de "pánico": tras descensos del mercado y con volatilidad alta.
+   - B. K. Hurst, Y. H. Ooi y L. H. Pedersen, 2017 (ficha de CAND-TREND-ATR-v1), sobre momentum de
+     series temporales.
+3. **Evidencia y limitaciones**:
+   - Publicada: los regímenes de Markov recogen cambios discretos en la media y la varianza
+     (Hamilton). El momentum sufre en regímenes de alta volatilidad (Daniel y Moskowitz, sobre todo
+     en el momentum transversal de acciones).
+   - Limitaciones:
+     - Ninguna fuente prueba esta combinación en oro. El momentum de 20 días con una posición de
+       un solo día es una variante propia.
+     - Un HMM de 2 estados puede ser inestable: Boldin (1996) no reprodujo los estimadores de
+       Hamilton al ampliar la muestra. Por eso la inicialización está fijada.
+4. **Reglas exactas**:
+   - Retornos diarios: logaritmo del cociente entre el cierre de un día completo del servidor y el
+     del anterior.
+   - HMM gaussiano de 2 estados ajustado por Baum-Welch (inicialización fija, 200 iteraciones como
+     máximo, tolerancia 1e-6) **una vez por año**, con los días completos anteriores al 1 de enero.
+     Necesita al menos 250 retornos; si no los hay, no opera ese año.
+   - Cada día a las 03:00 NY se calcula la probabilidad filtrada (solo hacia delante) del estado de
+     mayor varianza. Si es de 0,5 o más, no opera.
+   - Si es menor de 0,5: compra si el retorno de los últimos 20 días completos es positivo y vende
+     si es negativo.
+   - Stop a 2 ATR diarios (14 días), sin objetivo y con cierre a las 15:45 NY.
+5. **Marco temporal y condiciones**: diario para el régimen y la señal, y ejecución sobre M1.
+   Como mucho una operación al día.
+6. **Indicadores y parámetros**: 2 estados, umbral de 0,5, momentum de 20 días, ATR de 14 días,
+   stop de 2 ATR y mínimo de 250 días. Son convenciones, sin optimizar.
+7. **Stop, objetivo y gestión**: stop fijo y cierre por tiempo, sin gestión dinámica.
+8. **Supuestos de ejecución**: entrada a mercado a las 03:00 NY, con spread normal según
+   COST_MODEL.md.
+9. **Riesgos conocidos**:
+   - Un modelo anual puede quedar desfasado si el régimen cambia a mitad de año.
+   - Con pocos cambios de régimen, la evidencia es escasa.
+   - El stop diario es amplio, así que con un riesgo del 0,5 % el volumen resulta pequeño.
+10. **Hipótesis a contrastar**: en XAUUSD, el signo del retorno de 20 días anticipa el movimiento
+    intradía de las sesiones europea y americana cuando el HMM indica régimen tranquilo, y no
+    cuando indica régimen volátil.
+11. **Variantes probadas**: 0 (1 definida).
+12. **Resultados**: no disponibles.
+13. **Decisión**: pendiente del filtro de backtest y, si lo supera, del paper trading.
+
+---
+
+## CAND-VWAP-MR-v1: reversión al VWAP del día
+
+1. **Nombre e identificador**: reversión a VWAP con tick_volume. `CAND-VWAP-MR-v1`.
+2. **Fuente, enlace y fecha de consulta (2026-10-10)**:
+   - **No encontré evidencia académica** de reversión al VWAP intradía.
+   - El trabajo más citado sobre VWAP intradía (Zarattini y Aziz, 2023, SSRN 4631351, no consultado
+     directamente) prueba lo contrario, **seguir** el VWAP, y sus réplicas independientes dan
+     resultados mucho menores.
+   - Las páginas de vendedores con reglas de reversión (por ejemplo, StockSharp) se citan **sin
+     valor de evidencia**.
+3. **Evidencia y limitaciones**: no hay evidencia verificable a favor. Es una hipótesis propia que
+   sirve de contraste con las de seguimiento. La limitación clave es que `tick_volume` cuenta los
+   ticks del CFD, no el volumen negociado, así que este "VWAP" pondera por actividad de cotización.
+4. **Reglas exactas**:
+   - VWAP del día del servidor = media del precio típico ((máximo + mínimo + cierre) / 3) de las
+     velas M15 cerradas del día, ponderada por `tick_volume`.
+   - Entre las 08:00 y las 14:00 NY, con al menos 8 velas M15 en el día:
+     z = (cierre − VWAP) / ATR(14, M15).
+   - Venta si z > 2 y compra si z < −2.
+   - Objetivo: el VWAP en el momento de la señal. Stop a 1,5 ATR del cierre, del lado contrario.
+     Cierre a las 15:45 NY.
+5. **Marco temporal y condiciones**: M15, en la sesión de Nueva York.
+6. **Indicadores y parámetros**: umbral de 2 ATR, stop de 1,5 ATR, ATR de 14 y mínimo de 8 velas.
+   Son convenciones nuestras.
+7. **Stop, objetivo y gestión**: stop y objetivo fijos, más el cierre por tiempo.
+8. **Supuestos de ejecución**: entrada a mercado; el objetivo es una orden límite al VWAP fijado
+   al decidir.
+9. **Riesgos conocidos**: en días de tendencia (noticias) el precio se aleja del VWAP y no vuelve.
+   Además, un sustituto del volumen puede no reflejar dónde se negoció realmente.
+10. **Hipótesis a contrastar**: en la sesión de Nueva York, las desviaciones de más de 2 ATR
+    respecto al VWAP del día ponderado por ticks tienden a volver hacia él lo suficiente para
+    cubrir los costes.
+11. **Variantes probadas**: 0 (1 definida).
+12. **Resultados**: no disponibles.
+13. **Decisión**: pendiente del filtro de backtest y, si lo supera, del paper trading.
+
+---
+
 ## Referencias de comparación
 
 No son estrategias candidatas ni se presentan como rentables. Sirven para que una candidata
@@ -255,3 +404,10 @@ cualquier resultado distinto de cero viene de operar.
   conocida.
 - **Registro**: los parámetros del código coinciden con `configs/research.yaml` y el total de
   variantes probadas cuadra con el registro.
+- **Ronda 2**:
+  - NR7: un día construido a mano (primera ruptura, stop en el extremo opuesto y cierre a las
+    15:45 NY) y su prueba de no fuga.
+  - VWAP: comprobado contra el cálculo a mano.
+  - `tests/unit/test_regime.py`: el HMM recupera dos regímenes sintéticos, su ajuste es
+    determinista, el filtro es causal y la estrategia de régimen no ve el futuro (cortes en dos
+    años distintos).

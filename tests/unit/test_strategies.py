@@ -29,9 +29,14 @@ def frames_from(m1_rates):
             "M15": rates_to_frame(resample(m1_rates, 900)), "H1": rates_to_frame(resample(m1_rates, 3600))}
 
 
+# Necesitan cientos de días de historia (ajuste anual del HMM) o un patrón poco frecuente:
+# se prueban con datos construidos a propósito (test_regime.py y test_nr7_*).
+LONG_HISTORY = {"CAND-REGIME-HMM-v1", "CAND-VOLX-NR7-v1"}
+
+
 @pytest.fixture(scope="module")
 def frames():
-    return frames_from(make_rates(session_minutes(MONDAY, 3), seed=7))
+    return frames_from(make_rates(session_minutes(MONDAY, 8), seed=7))
 
 
 @pytest.fixture(scope="module")
@@ -75,7 +80,7 @@ def test_notrade_never_signals(signals_by_strategy):
 
 def test_strategies_other_than_notrade_produce_signals_on_synthetic_data(signals_by_strategy):
     for name, sigs in signals_by_strategy.items():
-        if name != "REF-NOTRADE-v1":
+        if name != "REF-NOTRADE-v1" and name not in LONG_HISTORY:
             assert len(sigs) > 0, name
 
 
@@ -101,7 +106,7 @@ def perturb_after(frames, t_cut, seed):
 
 
 @pytest.mark.parametrize("name", sorted(STRATEGIES))
-@pytest.mark.parametrize("day_offset", [2, 8, 15])
+@pytest.mark.parametrize("day_offset", [2, 15, 36])
 def test_no_lookahead_per_strategy(name, day_offset, frames, signals_by_strategy):
     t_cut = MONDAY + day_offset * 86400 + 16 * 3600 + 45 * 60      # 09:45 NY de ese día
     changed = perturb_after(frames, t_cut, seed=day_offset)
@@ -241,3 +246,71 @@ def test_no_lookahead_check_detects_a_leaky_strategy(frames):
     before = [s for s in generate_signals(_Leaky(), frames) if s.decision_time <= t_cut]
     after = [s for s in generate_signals(_Leaky(), changed) if s.decision_time <= t_cut]
     assert before != after
+
+
+# --- Ronda 2: NR7 y VWAP ----------------------------------------------------------------
+
+from aurum.features.daily import DAY
+from aurum.strategies.candidates_r2 import Nr7Breakout, VwapReversion
+
+
+def _nr7_rates(direction):
+    """Semana 2, martes: día NR7 muy estrecho; miércoles: plano hasta las 10:00 del servidor y
+    luego una tendencia que rompe el rango del martes."""
+    rates = make_rates(session_minutes(MONDAY, 3), seed=4)
+    tue = MONDAY // DAY + 8
+    t = rates["time"] // 60 * 60
+    day = t // DAY
+    in_tue = day == tue
+    mid = float(rates["close"][in_tue].mean())
+    for k in ("open", "high", "low", "close"):
+        rates[k][in_tue] = mid + 0.05 * (rates[k][in_tue] - mid)
+    in_wed = day == tue + 1
+    sod = (t % DAY)
+    flat = in_wed & (sod < 10 * 3600)
+    for k in ("open", "high", "low", "close"):
+        rates[k][flat] = mid
+    trend = in_wed & (sod >= 10 * 3600)
+    steps = np.cumsum(trend) * 0.05 * direction
+    for k in ("open", "close"):
+        rates[k][trend] = mid + steps[trend]
+    rates["high"][trend] = np.maximum(rates["open"][trend], rates["close"][trend]) + 0.01
+    rates["low"][trend] = np.minimum(rates["open"][trend], rates["close"][trend]) - 0.01
+    return rates, tue
+
+
+@pytest.mark.parametrize("direction", [1, -1])
+def test_nr7_trades_first_breakout_of_narrow_day(direction):
+    rates, tue = _nr7_rates(direction)
+    f = frames_from(rates)
+    sigs = [s for s in generate_signals(Nr7Breakout(), f) if s.decision_time // DAY == tue + 1]
+    assert len(sigs) == 1                                   # solo la primera ruptura
+    s = sigs[0]
+    assert s.side == direction
+    tue_bars = f["H1"][f["H1"]["time_raw"] // DAY == tue]
+    expected_stop = tue_bars["low"].min() if direction == 1 else tue_bars["high"].max()
+    assert s.stop == pytest.approx(expected_stop)
+    assert int(ny_minute_of_day(s.decision_time + s.max_hold_s)) == 15 * 60 + 45
+
+
+def test_nr7_no_lookahead_around_breakout():
+    rates, tue = _nr7_rates(1)
+    f = frames_from(rates)
+    base = generate_signals(Nr7Breakout(), f)
+    t_cut = (tue + 1) * DAY + 10 * 3600 + 45 * 60
+    changed = perturb_after(f, t_cut, seed=3)
+    assert [s for s in base if s.decision_time <= t_cut] ==         [s for s in generate_signals(Nr7Breakout(), changed) if s.decision_time <= t_cut]
+
+
+def test_vwap_reversion_targets_vwap_and_uses_tick_volume():
+    rates = make_rates(session_minutes(MONDAY, 2), seed=9)
+    f = frames_from(rates)
+    sigs = generate_signals(VwapReversion(), f)
+    assert sigs
+    m15 = f["M15"]
+    for s in sigs[:5]:
+        today = m15[(m15["time_raw"] // DAY == s.decision_time // DAY) & (m15["time_raw"] + 900 <= s.decision_time)]
+        w = today["tick_volume"].to_numpy(float)
+        typical = (today["high"] + today["low"] + today["close"]).to_numpy(float) / 3
+        assert s.take_profit == pytest.approx((typical * w).sum() / w.sum())
+        assert 8 * 60 <= int(ny_minute_of_day(s.decision_time)) < 14 * 60

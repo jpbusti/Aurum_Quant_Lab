@@ -11,11 +11,13 @@ from aurum.strategies.candidates import (
     IntradayMomentumNY,
     OpeningRangeBreakoutNY,
 )
+from aurum.strategies.candidates_r2 import Nr7Breakout, RegimeMomentum, VwapReversion
 from aurum.strategies.references import NoTrade, RandomEntry, SmaCross
 
 STRATEGIES: dict[str, type[Strategy]] = {
     cls.name: cls
-    for cls in (NoTrade, RandomEntry, SmaCross, OpeningRangeBreakoutNY, IntradayMomentumNY, AtrTrendBreakout)
+    for cls in (NoTrade, RandomEntry, SmaCross, OpeningRangeBreakoutNY, IntradayMomentumNY, AtrTrendBreakout,
+                Nr7Breakout, RegimeMomentum, VwapReversion)
 }
 
 
