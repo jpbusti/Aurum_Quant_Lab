@@ -14,6 +14,23 @@ from aurum.features.sessions import hhmm, ny_minute_of_day
 from aurum.strategies.base import DataView, Strategy
 
 
+def splitmix_uniform(seed: int | np.ndarray, t: int | np.ndarray, stream: int) -> np.ndarray:
+    """Uniforme en [0, 1) determinista a partir de (semilla, instante, flujo), vectorizable.
+
+    Hash splitmix64. Sustituye a numpy.random para poder generar 1 000 placebos sin bucles;
+    no depende del orden de llamada ni de datos futuros.
+    """
+    with np.errstate(over="ignore"):
+        x = (np.asarray(seed, dtype=np.uint64) * np.uint64(0x9E3779B97F4A7C15)
+             ^ np.asarray(t, dtype=np.uint64) * np.uint64(0xBF58476D1CE4E5B9)
+             ^ np.uint64(stream) * np.uint64(0x94D049BB133111EB))
+        x = x + np.uint64(0x9E3779B97F4A7C15)
+        x = (x ^ (x >> np.uint64(30))) * np.uint64(0xBF58476D1CE4E5B9)
+        x = (x ^ (x >> np.uint64(27))) * np.uint64(0x94D049BB133111EB)
+        x = x ^ (x >> np.uint64(31))
+    return (x >> np.uint64(11)).astype(np.float64) / float(1 << 53)
+
+
 def _in_ny_window(t: int, start: str, end: str) -> bool:
     m = int(ny_minute_of_day(t))
     (h1, m1), (h2, m2) = hhmm(start), hhmm(end)
@@ -59,8 +76,8 @@ class RandomEntry(Strategy):
         t = view.decision_time
         if not _in_ny_window(t, self.p.ny_start, self.p.ny_end):
             return None
-        rng = np.random.default_rng([self.p.seed, t])
-        u, coin = rng.random(), rng.random()
+        u = float(splitmix_uniform(self.p.seed, t, 0))
+        coin = float(splitmix_uniform(self.p.seed, t, 1))
         if u >= self.p.probability:
             return None
         bars = view.closed("M15", self.p.atr_n + 1)
