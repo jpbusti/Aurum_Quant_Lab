@@ -77,10 +77,14 @@ def test_changing_future_data_does_not_change_past_signals(cut_index):
         df = df.copy()
         d = {"M1": 60, "M5": 300, "M15": 900, "H1": 3600}[tf]
         # Todo lo que aún no ha cerrado en t_cut (incluida la H1 en curso) se altera.
-        future = df["time_raw"] + d > t_cut
-        noise = rng.normal(0, 25, future.sum())
-        for col in ("open", "high", "low", "close"):
-            df.loc[future, col] = df.loc[future, col] + noise
+        future = (df["time_raw"] + d > t_cut).to_numpy()
+        n = int(future.sum())
+        # Nueva vela coherente: cambian nivel, dirección y rango, no solo un desplazamiento común.
+        o = df.loc[future, "open"].to_numpy() + rng.normal(0, 25, n)
+        c = df.loc[future, "close"].to_numpy() + rng.normal(0, 25, n)
+        df.loc[future, "open"], df.loc[future, "close"] = o, c
+        df.loc[future, "high"] = np.maximum(o, c) + np.abs(rng.normal(0, 5, n))
+        df.loc[future, "low"] = np.minimum(o, c) - np.abs(rng.normal(0, 5, n))
         changed[tf] = df
     sigs2 = generate_signals(MultiTF(), changed)
     before = [s for s in sigs if s.decision_time <= t_cut]

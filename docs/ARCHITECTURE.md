@@ -1,6 +1,6 @@
 # Arquitectura de AURUM Quant Lab
 
-Estado: **fases A, B y C completadas** (entorno; ingesta e integridad; motor de backtesting). El resto es diseño; cada módulo se
+Estado: **fases A, B y C completadas; fase D implementada sin backtest, pendiente de revisión** (referencias y candidatas). El resto es diseño; cada módulo se
 crea en su fase y solo cuando pasan las pruebas de la anterior.
 
 ## Principios
@@ -104,6 +104,15 @@ MT5 (solo lectura) → data/ (raw Parquet + metadatos) → validation/ (informe 
 | Ticks para el orden intrabarra solo si reproducen el máximo y mínimo del minuto | el hueco de ticks del 2026-06-29 15:37-15:41 no puede decidir nada |
 | Motor en hora del servidor; conversión a UTC aparte y estricta | la conversión aún no está confirmada en vivo |
 | Sin carpeta `execution/` | no hay operativa real; sigue deshabilitada |
+
+## Decisiones tomadas en la fase D
+
+| Decisión | Motivo |
+|---|---|
+| Horas de sesión en hora de Nueva York = servidor − 7 h (`features/sessions.py`) | las referencias de las fuentes son horas de NY; no requiere zonas horarias mientras la convención se mantenga |
+| Azar de REF-RANDOM determinado por (semilla, instante) | reproducible y sin dependencia del orden ni del futuro |
+| Parámetros en dataclasses congeladas, reflejados en `configs/research.yaml` | una prueba impide que código y registro diverjan |
+| Ruptura de Londres y VWAP no implementadas | conversión UTC sin confirmar y volumen real no verificado; registradas como no implementadas |
 
 ## Pendiente de decidir con datos del terminal
 
