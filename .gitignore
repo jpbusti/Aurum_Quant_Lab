@@ -18,3 +18,5 @@ logs/*
 
 # Resultados de experimentos: se regeneran con su run.py; las cifras clave van en docs/
 experiments/*/results.*
+experiments/*/placebo.*
+experiments/*/*.log

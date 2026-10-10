@@ -42,11 +42,13 @@ def signals_by_strategy(frames):
 # --- Registro --------------------------------------------------------------------------
 
 def test_registry_matches_research_yaml():
-    reg = yaml.safe_load((CONFIG_DIR / "research.yaml").read_text(encoding="utf-8"))["strategies"]
+    doc = yaml.safe_load((CONFIG_DIR / "research.yaml").read_text(encoding="utf-8"))
+    reg = doc["strategies"]
     assert set(reg) == set(STRATEGIES)
     for name in STRATEGIES:
         assert reg[name]["params"] == default_params(name), name
-        assert reg[name]["variants_tested"] == 0
+        assert reg[name]["variants_tested"] <= reg[name]["variants_defined"]
+    assert doc["variants_tested_total"] == sum(r["variants_tested"] for r in reg.values())
 
 
 # --- Interfaz ---------------------------------------------------------------------------

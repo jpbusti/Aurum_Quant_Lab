@@ -2,46 +2,53 @@
 # Parámetros fijados a priori; deben coincidir con el código (tests/unit/test_strategies.py).
 # variants_defined: variantes escritas; variants_tested: variantes evaluadas con backtest.
 registry_updated: "2026-10-10"
-variants_tested_total: 0
+variants_tested_total: 6
+phase_e: "docs/PHASE_E_RESULTS.md (pre-registro 9761a90)"
 
 strategies:
   REF-NOTRADE-v1:
     kind: referencia
-    status: implementada, sin probar
+    status: evaluada en la fase E
+    verdict: "referencia (0 operaciones)"
     variants_defined: 1
-    variants_tested: 0
+    variants_tested: 1
     params: {}
   REF-RANDOM-v1:
     kind: referencia
-    status: implementada, sin probar
+    status: evaluada en la fase E
+    verdict: "referencia; placebo de 1000 semillas"
     variants_defined: 1
-    variants_tested: 0
+    variants_tested: 1
     params: {seed: 20261010, probability: 0.0125, ny_start: "03:00", ny_end: "15:00",
              atr_n: 14, stop_atr: 2.0, target_atr: 2.0, max_hold_s: 14400}
   REF-SMACROSS-v1:
     kind: referencia
-    status: implementada, sin probar
+    status: evaluada en la fase E
+    verdict: "referencia; cumple las estrictas en la prueba final pero es negativa en validación e in-sample (ver PHASE_E_RESULTS.md)"
     variants_defined: 1
-    variants_tested: 0
+    variants_tested: 1
     params: {fast: 20, slow: 50, atr_n: 14, stop_atr: 2.0, max_hold_s: 86400}
   CAND-ORB-NY-v1:
     kind: candidata
-    status: implementada, sin probar
+    status: evaluada en la fase E
+    verdict: "REJECTED"
     variants_defined: 1
-    variants_tested: 0
+    variants_tested: 1
     params: {range_start_ny: "09:30", range_minutes: 15, session_close_ny: "16:00", target_r: 10.0}
   CAND-IMOM-NY-v1:
     kind: candidata
-    status: implementada, sin probar
+    status: evaluada en la fase E
+    verdict: "REJECTED"
     variants_defined: 1
-    variants_tested: 0
+    variants_tested: 1
     params: {first_window_end_ny: "10:00", prev_close_ny: "16:00", last_window_start_ny: "15:30",
              last_window_minutes: 30, atr_n: 14, stop_atr: 3.0}
   CAND-TREND-ATR-v1:
     kind: candidata
-    status: implementada, sin probar
+    status: evaluada en la fase E
+    verdict: "REJECTED"
     variants_defined: 1
-    variants_tested: 0
+    variants_tested: 1
     params: {donchian_n: 20, h1_sma: 50, atr_n: 14, stop_atr: 2.0, target_atr: 4.0,
              max_hold_s: 86400, ny_start: "03:00", ny_end: "15:00"}
 

@@ -13,8 +13,8 @@ refutar, no un resultado: ningún informe de este proyecto garantiza beneficios 
 | A | Inspección del entorno y arquitectura | hecha |
 | B | Ingesta de datos e integridad | hecha |
 | C | Motor de backtesting y pruebas | hecha |
-| D | Estrategias de referencia | implementada, sin backtest, pendiente de revisión |
-| E | Evaluación estadística y walk-forward | pendiente |
+| D | Estrategias de referencia | hecha |
+| E | Evaluación estadística y walk-forward | ejecutada, pendiente de revisión: 3 candidatas REJECTED |
 | F | Selección de candidatos | pendiente |
 | G | Paper trading en demo | pendiente |
 | H | Viabilidad de capital | pendiente |
@@ -76,4 +76,5 @@ contra el terminal real (solo lectura) y contra los datos descargados.
 - [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md): almacén, columnas, convención horaria, calendario y calidad.
 - [docs/COST_MODEL.md](docs/COST_MODEL.md): perfil de spread por hora, modelo de costes y escenarios.
 - [docs/STRATEGY_RESEARCH.md](docs/STRATEGY_RESEARCH.md): fichas de las referencias y candidatas, y registro de variantes.
+- [docs/PREREGISTRO_PHASE_E.md](docs/PREREGISTRO_PHASE_E.md) y [docs/PHASE_E_RESULTS.md](docs/PHASE_E_RESULTS.md): evaluación pre-registrada y resultados.
 - [docs/BACKTEST_ENGINE.md](docs/BACKTEST_ENGINE.md): reglas de ejecución, alineación sin fuga, riesgo y pruebas del motor.

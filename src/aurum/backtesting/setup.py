@@ -15,6 +15,7 @@ from aurum.backtesting.engine import Backtester
 from aurum.backtesting.spread_model import SpreadModel
 from aurum.backtesting.types import CostScenario, ExecutionConfig, RiskConfig
 from aurum.config import PROJECT_ROOT, load_yaml
+from aurum.data.mt5_client import TIMEFRAME_SECONDS
 from aurum.data.storage import RawStore
 from aurum.risk.sizing import Instrument
 from aurum.validation.quality import apply_exclusions, require_usable
@@ -65,12 +66,12 @@ def build_backtester(scenario: str, store: RawStore | None = None,
     return Backtester(instrument, model, sc, execution, risk, ticks)
 
 
-def load_m1(store: RawStore, start_raw: int | None = None, end_raw: int | None = None,
-            exclusions: list[dict[str, str]] | None = None) -> pd.DataFrame:
-    """Barras M1 del almacén en [start_raw, end_raw), leyendo solo los años necesarios y
-    quitando los rangos excluidos de configs/data.yaml."""
+def load_bars(store: RawStore, timeframe: str, start_raw: int | None = None, end_raw: int | None = None,
+              exclusions: list[dict[str, str]] | None = None) -> pd.DataFrame:
+    """Barras del almacén en [start_raw, end_raw), leyendo solo los años necesarios y quitando
+    los rangos excluidos de configs/data.yaml (toda barra que toque el rango)."""
     frames = []
-    for path in store.bar_files("M1"):
+    for path in store.bar_files(timeframe):
         year = int(path.stem)
         if start_raw is not None and year < dt.datetime.fromtimestamp(start_raw, dt.timezone.utc).year:
             continue
@@ -83,12 +84,23 @@ def load_m1(store: RawStore, start_raw: int | None = None, end_raw: int | None =
     if end_raw is not None:
         df = df[df["time_raw"] < end_raw]
     if exclusions:
-        df, _ = apply_exclusions(df, exclusions, duration=60)
+        df, _ = apply_exclusions(df, exclusions, duration=TIMEFRAME_SECONDS[timeframe])
     return df.reset_index(drop=True)
+
+
+def load_m1(store: RawStore, start_raw: int | None = None, end_raw: int | None = None,
+            exclusions: list[dict[str, str]] | None = None) -> pd.DataFrame:
+    return load_bars(store, "M1", start_raw, end_raw, exclusions)
+
+
+def load_validated(store: RawStore, data_cfg: dict[str, Any], timeframe: str, start_raw: int | None = None,
+                   end_raw: int | None = None) -> pd.DataFrame:
+    """Como load_bars, pero exige que el último informe de calidad no bloquee el timeframe."""
+    require_usable(PROJECT_ROOT / "data" / "reports" / "quality" / "latest.json", [timeframe])
+    return load_bars(store, timeframe, start_raw, end_raw, data_cfg["validation"]["exclusions"])
 
 
 def load_validated_m1(store: RawStore, data_cfg: dict[str, Any], start_raw: int | None = None,
                       end_raw: int | None = None) -> pd.DataFrame:
     """Como load_m1, pero exige que el último informe de calidad no bloquee M1."""
-    require_usable(PROJECT_ROOT / "data" / "reports" / "quality" / "latest.json", ["M1"])
-    return load_m1(store, start_raw, end_raw, data_cfg["validation"]["exclusions"])
+    return load_validated(store, data_cfg, "M1", start_raw, end_raw)

@@ -1,7 +1,7 @@
 # Investigación de estrategias de AURUM Quant Lab
 
-Fase D, 2026-10-10. Estrategias **implementadas y documentadas, sin backtest y sin optimizar**.
-Ninguna tiene una ventaja demostrada en nuestros datos. Código en `src/aurum/strategies/`,
+Fase D, 2026-10-10; resultados de la fase E añadidos el mismo día ([PHASE_E_RESULTS.md](PHASE_E_RESULTS.md)).
+Sin optimización. **Las tres candidatas fueron rechazadas en la fase E**: ninguna tiene ventaja en nuestros datos. Código en `src/aurum/strategies/`,
 registro de variantes en `configs/research.yaml`.
 
 ## Cómo leer estas fichas
@@ -10,7 +10,7 @@ Cada estrategia distingue tres niveles de evidencia, que no son equivalentes:
 
 1. **Publicada**: lo que dice la fuente, sobre su mercado, sus datos y sus costes.
 2. **Probada en nuestros datos**: resultado en XAUUSD de IC Markets con el motor de la fase C.
-   Hoy no existe para ninguna estrategia.
+   Desde la fase E existe para las seis: ver cada ficha y PHASE_E_RESULTS.md.
 3. **Resultados reales verificables**: operativa real o paper trading auditable. No existe.
 
 Todas las estrategias de este documento son **variantes propias** inspiradas en una fuente. Los
@@ -21,13 +21,13 @@ fuente original.
 
 | Id | Tipo | Variantes definidas | Variantes probadas | Estado |
 |---|---|---|---|---|
-| REF-NOTRADE-v1 | referencia | 1 | 0 | implementada |
-| REF-RANDOM-v1 | referencia | 1 | 0 | implementada |
-| REF-SMACROSS-v1 | referencia | 1 | 0 | implementada |
-| CAND-ORB-NY-v1 | candidata | 1 | 0 | implementada |
-| CAND-IMOM-NY-v1 | candidata | 1 | 0 | implementada |
-| CAND-TREND-ATR-v1 | candidata | 1 | 0 | implementada |
-| **Total** | | **6** | **0** | |
+| REF-NOTRADE-v1 | referencia | 1 | 1 | evaluada (fase E) |
+| REF-RANDOM-v1 | referencia | 1 | 1 | evaluada; placebo de 1 000 semillas |
+| REF-SMACROSS-v1 | referencia | 1 | 1 | evaluada; ver observación en PHASE_E_RESULTS.md |
+| CAND-ORB-NY-v1 | candidata | 1 | 1 | **REJECTED** |
+| CAND-IMOM-NY-v1 | candidata | 1 | 1 | **REJECTED** |
+| CAND-TREND-ATR-v1 | candidata | 1 | 1 | **REJECTED** |
+| **Total** | | **6** | **6** | |
 
 Hipótesis consideradas y **no implementadas** (se registran para no ocultarlas):
 
@@ -102,9 +102,15 @@ Cualquier variante nueva, cambio de parámetro o prueba futura se añade a este 
    cotiza casi 23 h; el cierre a las 16:00 NY cae a las 23:00 del servidor, la hora de mayor spread.
 10. **Hipótesis a contrastar**: la dirección de la primera vela M15 tras las 09:30 NY anticipa el
     movimiento del resto de la sesión en XAUUSD lo bastante como para superar los costes reales.
-11. **Variantes probadas**: 0 (1 definida).
-12. **Resultados in-sample y out-of-sample**: no disponibles (no se ha hecho backtest).
-13. **Decisión**: pendiente. Se evaluará en la fase E frente a las tres referencias.
+11. **Variantes probadas**: 1 (fase E, 2026-10-10). Sin otras variantes.
+12. **Resultados** (escenario base, 0,5 % de riesgo): in-sample 2017-2022 con PF 1,05 y +2 750 USD,
+    pero negativo en el escenario adverso; validación 2023-2024 con PF 0,86; prueba final
+    2025-2026 con 453 operaciones, PF 0,90 (IC90 0,68-1,14), DD 28,9 %, Sharpe −0,62 y expectancy
+    −0,067 R. Placebo: p = 0,68. DSR 0,009.
+13. **Decisión: REJECTED** (falla 6 de 7 estrictas y las 4 flexibles). Causa probable
+    (inferida, sin análisis adicional): la dirección de la primera vela de la sesión de acciones no
+    anticipa el oro de forma estable. Es coherente con la réplica de la fuente, que encontró un
+    bruto pequeño y un neto nulo en índices.
 
 **Diferencias con la fuente**: velas de 15 minutos en vez de 5, oro en vez de QQQ y cierre a las
 16:00 NY por analogía con el cierre de acciones. Es una variante propia.
@@ -148,9 +154,14 @@ Cualquier variante nueva, cambio de parámetro o prueba futura se añade a este 
 10. **Hipótesis a contrastar**: en XAUUSD, el signo del retorno desde las 16:00 NY del día anterior
     hasta las 10:00 NY de hoy predice el signo del retorno de 15:30 a 16:00 NY, y la ventaja supera
     los costes reales.
-11. **Variantes probadas**: 0 (1 definida).
-12. **Resultados in-sample y out-of-sample**: no disponibles.
-13. **Decisión**: pendiente (fase E).
+11. **Variantes probadas**: 1 (fase E, 2026-10-10).
+12. **Resultados** (base): in-sample con PF 0,67; validación con PF 0,80; prueba final con 420
+    operaciones, PF 0,99 (IC90 0,81-1,21), DD 2,0 %, Sharpe −0,07 y expectancy −0,000 R. En el
+    escenario de estrés el PF cae a 0,55. Placebo: p = 0,39. DSR 0,041.
+13. **Decisión: REJECTED** (falla 5 de 7 estrictas y 3 flexibles). Causa probable
+    (inferida): el patrón documentado en ETF de acciones no aparece en el oro. Además, la salida a
+    las 16:00 NY coincide con la hora de mayor spread, por eso el resultado empeora tanto con costes
+    mayores.
 
 ---
 
@@ -189,9 +200,14 @@ Cualquier variante nueva, cambio de parámetro o prueba futura se añade a este 
 10. **Hipótesis a contrastar**: en XAUUSD, las rupturas de canal M15 en la dirección de la
     tendencia H1 continúan lo suficiente para que un objetivo de 4 ATR compense un stop de 2 ATR
     después de costes.
-11. **Variantes probadas**: 0 (1 definida).
-12. **Resultados in-sample y out-of-sample**: no disponibles.
-13. **Decisión**: pendiente (fase E).
+11. **Variantes probadas**: 1 (fase E, 2026-10-10).
+12. **Resultados** (base): in-sample con PF 1,00; validación con PF 0,91; prueba final con 697
+    operaciones, PF 1,00 (IC90 0,88-1,15), DD 13,0 %, Sharpe 0,08 y expectancy −0,008 R (+48 USD
+    netos). Placebo: p = 0,33. DSR 0,061.
+13. **Decisión: REJECTED** (falla 5 de 7 estrictas y 3 flexibles). Causa probable
+    (inferida): las rupturas de canal de 15 minutos no continúan lo suficiente para compensar el
+    stop después de costes. La evidencia de tendencia de la fuente es de horizontes mensuales y no
+    se traslada al intradía.
 
 ---
 
@@ -237,5 +253,5 @@ cualquier resultado distinto de cero viene de operar.
   NY; nada con vela sin cuerpo o fuera de hora), momentum con retornos fijados a mano,
   reproducibilidad y ventana de la aleatoria, cruce de medias y tendencia en series con dirección
   conocida.
-- **Registro**: los parámetros del código coinciden con `configs/research.yaml` y ninguna variante
-  figura como probada.
+- **Registro**: los parámetros del código coinciden con `configs/research.yaml` y el total de
+  variantes probadas cuadra con el registro.
