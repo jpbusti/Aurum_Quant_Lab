@@ -15,3 +15,6 @@ data/reports/*
 !data/**/.gitkeep
 logs/*
 !logs/.gitkeep
+
+# Resultados de experimentos: se regeneran con su run.py; las cifras clave van en docs/
+experiments/*/results.*

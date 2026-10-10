@@ -116,7 +116,8 @@ primera barra posterior.
 - **M5, M15, M30 y H1 nativos coinciden al 100 % con los reconstruidos desde M1.** Se pueden
   usar los nativos o reconstruirlos; el resultado es el mismo.
 - Barras M1 frente a ticks (187 800 minutos, abril-octubre de 2026): los mínimos coinciden al
-  100 % y los máximos en el 99,9995 % (1 minuto distinto).
+  100 % y los máximos en el 99,9995 % (1 minuto distinto: 2026-06-29 15:41, por un hueco de
+  ticks de 15:37 a 15:41; análisis y efecto en el motor en [COST_MODEL.md](COST_MODEL.md)).
 
 ### Exclusión aplicada
 

@@ -12,7 +12,7 @@ refutar, no un resultado: ningún informe de este proyecto garantiza beneficios 
 |---|---|---|
 | A | Inspección del entorno y arquitectura | hecha |
 | B | Ingesta de datos e integridad | hecha |
-| C | Motor de backtesting y pruebas | pendiente |
+| C | Motor de backtesting y pruebas | hecha |
 | D | Estrategias de referencia | pendiente |
 | E | Evaluación estadística y walk-forward | pendiente |
 | F | Selección de candidatos | pendiente |
@@ -51,15 +51,22 @@ el símbolo de oro, sus especificaciones y el historial disponible. Guarda el in
 `validate-data` revisa la integridad y guarda el informe en `data/reports/quality/`; sale con
 código 1 si algún conjunto queda bloqueado por errores críticos.
 
+```bash
+.venv/Scripts/python -m aurum.cli calibrate-costs
+```
+
+Resume los ticks por minuto (archivo diario por archivo diario) y calibra el modelo de spread en
+`configs/cost_model.yaml`. Ver [docs/COST_MODEL.md](docs/COST_MODEL.md).
+
 ## Pruebas
 
 ```bash
 .venv/Scripts/python -m pytest
-.venv/Scripts/python -m pytest -m mt5
+.venv/Scripts/python -m pytest -m "mt5 or data"
 ```
 
 La primera ejecuta las pruebas unitarias con datos sintéticos; la segunda, las de integración
-contra el terminal real (solo lectura).
+contra el terminal real (solo lectura) y contra los datos descargados.
 
 ## Documentación
 
@@ -67,3 +74,5 @@ contra el terminal real (solo lectura).
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): estructura, flujo y decisiones pendientes.
 - [docs/TIMEZONE.md](docs/TIMEZONE.md): hora del servidor = Nueva York + 7 h y regla de conversión.
 - [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md): almacén, columnas, convención horaria, calendario y calidad.
+- [docs/COST_MODEL.md](docs/COST_MODEL.md): perfil de spread por hora, modelo de costes y escenarios.
+- [docs/BACKTEST_ENGINE.md](docs/BACKTEST_ENGINE.md): reglas de ejecución, alineación sin fuga, riesgo y pruebas del motor.

@@ -1,0 +1,46 @@
+# Fase C: parámetros del motor y de costes. Fijados ANTES de probar estrategias;
+# no se ajustan para mejorar resultados (docs/COST_MODEL.md).
+
+instrument:
+  # Instantánea de especificaciones guardada por download-data (hash en data/raw/.../specs).
+  spec_file: data/raw/ICMarketsSC-Demo/XAUUSD/specs/863718c9ad7e1014.json
+  leverage: 200                     # cuenta demo, check-environment 2026-10-10
+
+commission:
+  # Cuenta Raw Spread (MT5): 3,50 USD por lado y lote estándar, 7,00 USD ida y vuelta.
+  # Verificada por Juan en el portal oficial de IC Markets el 2026-10-10.
+  # Se cobra por lado: una vez al abrir y otra al cerrar, proporcional al volumen.
+  per_side_per_lot_usd: 3.50
+  verified_on: "2026-10-10"
+
+execution:
+  timeframe: M1                     # las órdenes se simulan sobre barras M1
+  max_entry_delay_s: 120            # si no hay precio en 2 min tras la señal, se rechaza
+  same_bar_policy: stop_first       # stop y objetivo en la misma barra sin ticks: gana el stop
+  use_ticks_intrabar: true          # resolver con ticks cuando cubren el minuto por completo
+  max_open_positions: 1
+
+spread_model_file: configs/cost_model.yaml
+
+# Escenarios de coste. spread_excess: estadístico del exceso sobre el spread mínimo de la
+# barra (mean, p90, p99). slippage_points: por lado en órdenes a mercado y stops (no en
+# objetivos, que son límite). Slippage NO medido aún: supuesto a contrastar en paper trading.
+scenarios:
+  base:
+    spread_excess: mean
+    spread_multiplier: 1.0
+    slippage_points: 2
+    commission_multiplier: 1.0
+    swap_multiplier: 1.0
+  adverse:
+    spread_excess: p90
+    spread_multiplier: 1.0
+    slippage_points: 10
+    commission_multiplier: 1.0
+    swap_multiplier: 1.5
+  stress:
+    spread_excess: p99
+    spread_multiplier: 1.5
+    slippage_points: 30
+    commission_multiplier: 1.5
+    swap_multiplier: 2.0

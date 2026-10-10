@@ -29,6 +29,7 @@ where = ["src"]
 testpaths = ["tests"]
 markers = [
     "mt5: necesita el terminal MetaTrader 5 abierto y conectado (cuenta demo)",
+    "data: necesita los datos descargados en data/raw y data/processed",
 ]
-# Las pruebas contra el terminal real se ejecutan aparte: pytest -m mt5
-addopts = "-m 'not mt5'"
+# Las pruebas con el terminal o con los datos reales se ejecutan aparte: pytest -m "mt5 or data"
+addopts = "-m 'not mt5 and not data'"

@@ -1,0 +1,12 @@
+# Límites de riesgo PROVISIONALES y conservadores para backtests y paper trading.
+# Ninguno es una recomendación de capital; los valores definitivos los aprueba Juan (fase H).
+
+backtest_balance_usd: 10000         # balance virtual de los backtests, no un capital recomendado
+sizing:
+  mode: risk                        # risk: volumen por riesgo monetario; fixed: volumen fijo
+  risk_per_trade_fraction: 0.005    # 0,5 % del equity por operación
+  fixed_volume: 0.01
+limits:
+  daily_loss_fraction: 0.02         # al perder 2 % en el día (servidor) no se abren más operaciones ese día
+  max_drawdown_fraction: 0.10       # al caer 10 % desde el máximo de equity se detiene la simulación de entradas
+  max_open_positions: 1

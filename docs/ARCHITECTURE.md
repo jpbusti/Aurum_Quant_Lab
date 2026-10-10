@@ -1,6 +1,6 @@
 # Arquitectura de AURUM Quant Lab
 
-Estado: **fases A y B completadas** (entorno; ingesta e integridad). El resto es diseño; cada módulo se
+Estado: **fases A, B y C completadas** (entorno; ingesta e integridad; motor de backtesting). El resto es diseño; cada módulo se
 crea en su fase y solo cuando pasan las pruebas de la anterior.
 
 ## Principios
@@ -88,18 +88,32 @@ MT5 (solo lectura) → data/ (raw Parquet + metadatos) → validation/ (informe 
 | Decisión | Detalle |
 |---|---|
 | Zona horaria | servidor = Nueva York + 7 h (docs/TIMEZONE.md); falta confirmarlo en vivo |
-| Comisión de la cuenta Raw | 3,50 USD por lado y lote (7,00 USD ida y vuelta; 0,07 USD con 0,01 lotes). **Por verificar en el portal de IC Markets** |
+| Comisión de la cuenta Raw | 3,50 USD por lado y lote (7,00 USD ida y vuelta; 0,07 USD con 0,01 lotes). **Verificada en el portal de IC Markets el 2026-10-10** |
 | Cotización del 2020-03-26 10:23 | **se mantiene** (1 500,59 entre barras de ~1 600, 3 ticks): el bróker la cotizó y pudo ejecutar stops, así que es lo conservador. Su impacto se medirá en la fase C |
 | Ticks | descargados los 6 meses disponibles (2026-04-01 a 2026-10-09, 87 M ticks) para calibrar el spread por hora y régimen |
+
+## Decisiones tomadas en la fase C
+
+| Decisión | Motivo |
+|---|---|
+| Ticks procesados archivo diario por archivo diario y solo 3 columnas | 87 M ticks (~5 GB en memoria) no caben con holgura; resumen por minuto en `data/processed/` |
+| Spread = mínimo de la barra M1 + exceso por hora del servidor | error fuera de muestra 1,39 puntos frente a 2,29 de un spread fijo (COST_MODEL.md) |
+| Sin régimen de volatilidad en el modelo de spread | no mejoró la predicción fuera de muestra |
+| Escenarios base, adverso y estrés fijados antes de probar estrategias | evitar ajustar costes a resultados |
+| Ejecución simulada sobre M1 aunque la señal sea M15 | ver el recorrido del precio dentro de la vela de señal |
+| Ticks para el orden intrabarra solo si reproducen el máximo y mínimo del minuto | el hueco de ticks del 2026-06-29 15:37-15:41 no puede decidir nada |
+| Motor en hora del servidor; conversión a UTC aparte y estricta | la conversión aún no está confirmada en vivo |
+| Sin carpeta `execution/` | no hay operativa real; sigue deshabilitada |
 
 ## Pendiente de decidir con datos del terminal
 
 1. **Periodos de la división temporal**: con M15 denso desde 2017-04, la propuesta inicial
    (a aprobar antes de ver resultados) se presentará en la fase E.
-2. **Resolución intrabarra** (stop y objetivo en la misma vela): ticks solo en el periodo
-   reciente; para el resto, supuesto conservador (primero el stop) y medición de su impacto
-   en el tramo con ticks.
+2. **Resolución intrabarra**: implementada (ticks si cubren el minuto; si no, primero el stop).
+   Medir su impacto por estrategia en la fase E.
 3. **Swap**: cambia con el tiempo y no hay histórico en la API; se registrará cada día en
    paper trading y se usarán escenarios en el backtest.
-4. **Modelo de spread**: el campo de las barras es el spread mínimo; se calibrará en la fase C
-   con los 6 meses de ticks (por hora del día y régimen de volatilidad), con escenarios base y adverso.
+4. **Modelo de spread**: calibrado en la fase C (COST_MODEL.md). Pendiente: el exceso por hora se
+   midió en 2026 y se aplica a 2017-2025 sin poder verificarlo.
+5. **Slippage**: los valores de los escenarios son supuestos; medirlos en paper trading (fase G).
+6. **Zona horaria**: confirmar Nueva York + 7 h en vivo con el mercado abierto.

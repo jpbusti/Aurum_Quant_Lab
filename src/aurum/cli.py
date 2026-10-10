@@ -1,11 +1,13 @@
 """Interfaz de línea de comandos: python -m aurum.cli <comando>.
 
-Comandos disponibles: check-environment (fase A), download-data y validate-data (fase B).
+Comandos disponibles: check-environment (fase A), download-data y validate-data (fase B),
+calibrate-costs (fase C).
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 
@@ -17,6 +19,7 @@ from aurum.environment import build_report, write_report
 from aurum.validation.quality import run_quality, write_quality_report
 
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 EXIT_CODES = {"OK": 0, "WARN": 0, "CRITICAL": 1, "UNAVAILABLE": 2}
 
@@ -87,6 +90,37 @@ def cmd_validate_data(args: argparse.Namespace) -> int:
     return 1 if report["blocked"] else 0
 
 
+def cmd_calibrate_costs(args: argparse.Namespace) -> int:
+    import pandas as pd
+
+    from aurum.backtesting.setup import load_backtest_configs, load_m1
+    from aurum.backtesting.spread_model import calibrate, evaluate_candidates, join_minutes_with_bars, write_model
+    from aurum.data.tick_minutes import build_tick_minutes, save_tick_minutes
+
+    cfg = load_data_config(args.config)
+    store = _store(cfg)
+    bt_cfg, _ = load_backtest_configs()
+    point = json.loads((PROJECT_ROOT / bt_cfg["instrument"]["spec_file"]).read_text(encoding="utf-8"))["point"]
+    minutes, hist, meta = build_tick_minutes(store, point)
+    out_dir = save_tick_minutes(PROCESSED_DIR / cfg["source"]["server"] / cfg["symbol"]["name"], minutes, hist, meta)
+    m1 = load_m1(store, int(minutes["time_raw"].min()), int(minutes["time_raw"].max()) + 60,
+                 cfg["validation"]["exclusions"])
+    joined = join_minutes_with_bars(minutes, m1)
+    split = int(pd.Timestamp(args.split, tz="UTC").timestamp())
+    evaluation = evaluate_candidates(joined, split)
+    scenarios = {name: sc["spread_excess"] for name, sc in bt_cfg["scenarios"].items()}
+    model = calibrate(joined, {**meta["source"], "ticks": meta["ticks"], "days": meta["days"],
+                               "excluded_inconsistent_minutes": int(len(minutes) - len(joined))},
+                      scenarios, evaluation)
+    path = write_model(model, PROJECT_ROOT / bt_cfg["spread_model_file"])
+    print(f"Ticks: {meta['ticks']} en {meta['days']} días -> {meta['minutes']} minutos ({out_dir})")
+    print(f"Minutos usados: {len(joined)} (excluidos por ticks incompletos: {len(minutes) - len(joined)})")
+    for name, ev in evaluation["candidates"].items():
+        print(f"  {name}: MAE {ev['mae_points']} pts, sesgo {ev['bias_points']:+} pts")
+    print(f"Modelo: {path}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="aurum", description="AURUM Quant Lab")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -101,6 +135,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--ticks-days", type=int, default=0, help="Descargar ticks de los N últimos días laborables")
     p.add_argument("--no-bars", action="store_true", help="Solo ticks")
     p.set_defaults(func=cmd_download_data)
+
+    p = sub.add_parser("calibrate-costs", help="Calibra el modelo de spread con los ticks descargados")
+    p.add_argument("--config", default=None)
+    p.add_argument("--split", default="2026-08-01", help="Inicio del periodo de evaluación del modelo")
+    p.set_defaults(func=cmd_calibrate_costs)
 
     p = sub.add_parser("validate-data", help="Valida la integridad de los datos descargados")
     p.add_argument("--config", default=None)
