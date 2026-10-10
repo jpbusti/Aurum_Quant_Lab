@@ -1,0 +1,17 @@
+# Entorno
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Secretos: nunca se versionan
+.env
+
+# Datos y salidas generadas (se regeneran desde MT5; la procedencia queda en los metadatos)
+data/raw/*
+data/processed/*
+data/reports/*
+!data/**/.gitkeep
+logs/*
+!logs/.gitkeep

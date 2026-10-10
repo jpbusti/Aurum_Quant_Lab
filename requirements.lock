@@ -1,0 +1,9 @@
+colorama==0.4.6
+iniconfig==2.3.1
+metatrader5==5.0.6231
+numpy==1.26.4
+packaging==26.3
+pluggy==1.6.0
+Pygments==2.21.0
+pytest==9.1.1
+PyYAML==6.0.3

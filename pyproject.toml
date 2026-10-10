@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aurum-quant-lab"
+version = "0.1.0"
+description = "Laboratorio de investigación, backtesting y validación de estrategias XAU/USD sobre MetaTrader 5"
+requires-python = ">=3.12,<3.13"
+# Fase A: solo lo necesario para inspeccionar el entorno.
+# pandas y pyarrow se añadirán en la fase B (ingesta a Parquet).
+dependencies = [
+    "MetaTrader5>=5.0.5000; sys_platform == 'win32'",
+    "numpy>=1.26,<2",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+aurum = "aurum.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "mt5: necesita el terminal MetaTrader 5 abierto y conectado (cuenta demo)",
+]
+# Las pruebas contra el terminal real se ejecutan aparte: pytest -m mt5
+addopts = "-m 'not mt5'"

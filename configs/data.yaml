@@ -1,0 +1,17 @@
+# Fuente de datos esperada. check-environment compara esto con lo que reporta el terminal
+# y marca error crítico si no coincide (otro servidor, cuenta real, otro símbolo).
+source:
+  broker: IC Markets
+  server: ICMarketsSC-Demo        # verificado en el terminal el 2026-10-10
+  account_trade_mode: DEMO        # cualquier otro modo bloquea el laboratorio
+
+symbol:
+  name: XAUUSD                    # verificado en el terminal el 2026-10-10 (sin sufijo)
+  currency_base: XAU
+  currency_profit: USD
+
+timeframes: [M1, M5, M15, M30, H1]
+
+terminal:
+  path: null                      # o variable AURUM_MT5_PATH; null = terminal por defecto
+  timeout_ms: 60000
