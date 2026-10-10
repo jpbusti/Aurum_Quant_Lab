@@ -14,12 +14,15 @@ from __future__ import annotations
 
 import datetime as dt
 import logging
+import time
+from collections.abc import Callable
 from types import ModuleType
-from typing import Any
+from typing import Any, TypeVar
 
 import numpy as np
 
 log = logging.getLogger(__name__)
+T = TypeVar("T")
 UTC = dt.timezone.utc
 
 TIMEFRAME_SECONDS = {"M1": 60, "M5": 300, "M15": 900, "M30": 1800, "H1": 3600}
@@ -197,8 +200,31 @@ class MT5Client:
             return None
         return {k: ticks[0][k].item() for k in ticks.dtype.names}
 
-    def tick_count(self, name: str, start: dt.datetime, end: dt.datetime) -> int:
+    def ticks(self, name: str, start: dt.datetime, end: dt.datetime) -> np.ndarray:
         ticks = self.mt5.copy_ticks_range(name, start, end, self.mt5.COPY_TICKS_ALL)
         if ticks is None:
             raise self._fail(f"copy_ticks_range({name})")
-        return len(ticks)
+        return ticks
+
+    def tick_count(self, name: str, start: dt.datetime, end: dt.datetime) -> int:
+        return len(self.ticks(name, start, end))
+
+    def retrying(self, fn: Callable[[], T], retries: int = 3, wait_s: float = 2.0) -> T:
+        """Ejecuta fn; ante un fallo del terminal reconecta y reintenta con espera creciente.
+
+        Si persiste, propaga el último error. Nunca devuelve datos vacíos en su lugar.
+        """
+        for attempt in range(1, retries + 1):
+            try:
+                return fn()
+            except MT5Error as exc:
+                if attempt == retries:
+                    raise
+                log.warning("intento %d/%d fallido (%s); reconectando", attempt, retries, exc)
+                time.sleep(wait_s * attempt)
+                self.close()
+                try:
+                    self.connect()
+                except MT5Error as conn_exc:
+                    log.warning("reconexión fallida: %s", conn_exc)
+        raise AssertionError("inalcanzable")

@@ -95,7 +95,26 @@ class FakeMT5:
     def order_calc_margin(self, action, symbol, volume, price):
         return round(volume * 100 * price / 100, 2)
 
+    # Series sintéticas opcionales: {timeframe_constante: rates}, ticks. Si se definen,
+    # copy_* filtra por rango como la API real (ambos extremos incluidos).
+    series: dict | None = None
+    tick_series: np.ndarray | None = None
+    fail_next_calls = 0
+    rates_calls = 0
+
+    def _maybe_fail(self):
+        if self.fail_next_calls:
+            self.fail_next_calls -= 1
+            return True
+        return False
+
     def copy_rates_range(self, symbol, timeframe, start, end):
+        self.rates_calls += 1
+        if self._maybe_fail():
+            return None
+        if self.series is not None:
+            r = self.series[timeframe]
+            return r[(r["time"] >= int(start.timestamp())) & (r["time"] <= int(end.timestamp()))]
         step = self.TF_SECONDS[timeframe]
         out = np.zeros(self.bars, dtype=RATES_DTYPE)
         out["time"] = self.bars_start + step * np.arange(self.bars)
@@ -103,9 +122,17 @@ class FakeMT5:
         return out
 
     def copy_ticks_from(self, symbol, start, count, flags):
+        if self.tick_series is not None:
+            t = self.tick_series
+            return t[t["time"] >= int(start.timestamp())][:count]
         out = np.zeros(1, dtype=TICKS_DTYPE)
         out["time"] = self.last_tick_time - 3600
         return out
 
     def copy_ticks_range(self, symbol, start, end, flags):
+        if self._maybe_fail():
+            return None
+        if self.tick_series is not None:
+            t = self.tick_series
+            return t[(t["time_msc"] >= int(start.timestamp()) * 1000) & (t["time_msc"] <= int(end.timestamp()) * 1000)]
         return np.zeros(42, dtype=TICKS_DTYPE)

@@ -1,6 +1,6 @@
 # Arquitectura de AURUM Quant Lab
 
-Estado: **fase A completada** (inspección del entorno). El resto es diseño; cada módulo se
+Estado: **fases A y B completadas** (entorno; ingesta e integridad). El resto es diseño; cada módulo se
 crea en su fase y solo cuando pasan las pruebas de la anterior.
 
 ## Principios
@@ -70,19 +70,36 @@ MT5 (solo lectura) → data/ (raw Parquet + metadatos) → validation/ (informe 
 | Pruebas contra el terminal marcadas `mt5`, aparte de las unitarias | las unitarias corren sin terminal y con datos sintéticos etiquetados |
 | Dependencias mínimas (numpy, PyYAML) | pandas y pyarrow entran en la fase B, cuando hacen falta |
 
+## Decisiones tomadas en la fase B
+
+| Decisión | Motivo |
+|---|---|
+| Parquet anual por timeframe + manifiesto JSON, sin base de datos | suficiente para ~3,4 M barras M1; legible y versionable por fuente |
+| Guardar timeframes nativos (M5-H1) además de M1 | validados: coinciden al 100 % con los reconstruidos desde M1 |
+| Solo barras cerradas; nunca sobrescribir una barra guardada | reproducibilidad: un experimento ve siempre los mismos datos |
+| Calendario de sesiones derivado de los datos, en hora del servidor | clasificar huecos sin suponer horarios; ver DATA_DICTIONARY.md |
+| Excluir 2017-04-01 a 2017-04-06 01:00 | barras horarias con etiqueta M1 (evidencia en DATA_DICTIONARY.md) |
+| Los saltos de precio se reportan, no se eliminan | un salto puede ser real (datos macro); excluir exige decisión y motivo |
+| numpy 2.x (antes <2) | pyarrow actual exige numpy 2; el paquete MetaTrader5 5.0.6231 funciona con él (pruebas `mt5` pasan) |
+| `validation.quality.require_usable()` como puerta | las fases C+ no pueden usar un timeframe bloqueado o sin validar |
+
+## Decisiones aprobadas por Juan (2026-10-10)
+
+| Decisión | Detalle |
+|---|---|
+| Zona horaria | servidor = Nueva York + 7 h (docs/TIMEZONE.md); falta confirmarlo en vivo |
+| Comisión de la cuenta Raw | 3,50 USD por lado y lote (7,00 USD ida y vuelta; 0,07 USD con 0,01 lotes). **Por verificar en el portal de IC Markets** |
+| Cotización del 2020-03-26 10:23 | **se mantiene** (1 500,59 entre barras de ~1 600, 3 ticks): el bróker la cotizó y pudo ejecutar stops, así que es lo conservador. Su impacto se medirá en la fase C |
+| Ticks | descargados los 6 meses disponibles (2026-04-01 a 2026-10-09, 87 M ticks) para calibrar el spread por hora y régimen |
+
 ## Pendiente de decidir con datos del terminal
 
-1. **Desfase horario del servidor** y fechas de cambio de horario de verano: medir con mercado abierto.
-2. **Comisión** por lote de la cuenta Raw: la API de símbolo no la da. Opciones: que Juan la
-   confirme desde las condiciones de su cuenta, o medirla de operaciones demo (eso implica
-   abrir órdenes en demo, y no se hará sin aprobación).
-3. **Modelo de spread** para backtests largos: el campo de las barras tiene ceros, así que se
-   calibrará con los 6 meses de ticks (por hora del día y día de la semana) y se aplicará con
-   escenarios base y adverso.
-4. **Periodos de la división temporal**: con M15 denso desde 2017-04, la propuesta inicial
+1. **Periodos de la división temporal**: con M15 denso desde 2017-04, la propuesta inicial
    (a aprobar antes de ver resultados) se presentará en la fase E.
-5. **Resolución intrabarra** (stop y objetivo en la misma vela): ticks solo en el periodo
+2. **Resolución intrabarra** (stop y objetivo en la misma vela): ticks solo en el periodo
    reciente; para el resto, supuesto conservador (primero el stop) y medición de su impacto
    en el tramo con ticks.
-6. **Swap**: cambia con el tiempo y no hay histórico en la API; se registrará cada día en
+3. **Swap**: cambia con el tiempo y no hay histórico en la API; se registrará cada día en
    paper trading y se usarán escenarios en el backtest.
+4. **Modelo de spread**: el campo de las barras es el spread mínimo; se calibrará en la fase C
+   con los 6 meses de ticks (por hora del día y régimen de volatilidad), con escenarios base y adverso.

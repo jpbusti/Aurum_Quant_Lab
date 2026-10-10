@@ -21,3 +21,18 @@ def cfg():
 @pytest.fixture
 def fake():
     return FakeMT5()
+
+
+@pytest.fixture
+def cfg_b(cfg):
+    """Configuración de fase B: fuente de prueba + calendario y umbrales reales de configs/data.yaml."""
+    from aurum.config import load_data_config
+
+    real = load_data_config()
+    return {
+        **cfg,
+        "timeframes": ["M1", "M15", "H1"],
+        "download": {**real["download"], "bars_start": "2024-01-01", "retry_wait_s": 0.0},
+        "sessions": real["sessions"],
+        "validation": {**real["validation"], "exclusions": []},
+    }

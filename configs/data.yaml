@@ -15,3 +15,45 @@ timeframes: [M1, M5, M15, M30, H1]
 terminal:
   path: null                      # o variable AURUM_MT5_PATH; null = terminal por defecto
   timeout_ms: 60000
+
+# --- Fase B: descarga -------------------------------------------------------
+download:
+  # Primer mes con barras M1-M30 reales (fase A, docs/ENVIRONMENT.md). Antes el servidor
+  # devuelve barras diarias u horarias con etiqueta de timeframe menor.
+  bars_start: "2017-04-01"
+  chunk_days: 365
+  retries: 3
+  retry_wait_s: 2.0
+  # Ticks: el terminal solo los tiene desde 2026-04-01. Se descargan por día bajo demanda
+  # (download-data --ticks-days N) porque ocupan mucho.
+  ticks_default_days: 5
+
+# --- Calendario del servidor (hora del servidor, NO UTC) --------------------------
+# Derivado de los huecos reales de M1 2017-04..2026-10 (docs/DATA_DICTIONARY.md):
+# apertura diaria 01:00, cierre 23:57-23:59, fin de semana viernes 23:57 -> lunes 01:00.
+# Sirve para clasificar huecos, no para decidir operaciones.
+sessions:
+  daily_open: "01:00"
+  open_tolerance_min: 5           # se acepta apertura hasta 01:05
+  daily_break_max_min: 75         # pausa diaria esperada (61-63 min observados)
+  early_close_max_hours: 6        # cierres anticipados por festivo (p. ej. 20:00 -> 01:00)
+
+# --- Fase B: validación -------------------------------------------------------
+validation:
+  # Huecos intradía no explicados por el calendario: a partir de esta duración son aviso.
+  unexplained_gap_warn_min: 30
+  # Retorno cierre a cierre anómalo: |r| > k * escala robusta (MAD) del año.
+  return_mad_k: 25
+  # Diferencia máxima tolerada entre timeframe nativo y reconstruido desde M1 (en precio).
+  resample_tolerance: 0.011
+  # Fracción máxima de barras nativas incoherentes con M1 antes de marcar aviso.
+  resample_mismatch_warn: 0.001
+  # Rangos excluidos de forma justificada (hora del servidor, ISO). Se excluye toda barra
+  # que toque el rango, en todos los timeframes. Cada exclusión necesita motivo.
+  exclusions:
+    - from: "2017-04-01T00:00"
+      to: "2017-04-06T01:00"
+      reason: >-
+        El 3 y 4 de abril de 2017 el servidor devuelve una barra por hora etiquetada como M1;
+        el 5 de abril las barras por minuto empiezan a las 10:21. La primera sesión completa
+        de M1 real es la del 6 de abril (validate-data 2026-10-10, docs/DATA_DICTIONARY.md).

@@ -11,7 +11,7 @@ refutar, no un resultado: ningún informe de este proyecto garantiza beneficios 
 | Fase | Contenido | Estado |
 |---|---|---|
 | A | Inspección del entorno y arquitectura | hecha |
-| B | Ingesta de datos e integridad | pendiente |
+| B | Ingesta de datos e integridad | hecha |
 | C | Motor de backtesting y pruebas | pendiente |
 | D | Estrategias de referencia | pendiente |
 | E | Evaluación estadística y walk-forward | pendiente |
@@ -41,6 +41,16 @@ el símbolo de oro, sus especificaciones y el historial disponible. Guarda el in
 `data/reports/environment/`. Código de salida: 0 correcto o con avisos, 1 error crítico,
 2 terminal no disponible.
 
+```bash
+.venv/Scripts/python -m aurum.cli download-data --ticks-days 5
+.venv/Scripts/python -m aurum.cli validate-data
+```
+
+`download-data` descarga de forma incremental las barras M1, M5, M15, M30 y H1 (desde abril de
+2017) y, si se pide, los ticks de los N últimos días laborables, a Parquet en `data/raw/`.
+`validate-data` revisa la integridad y guarda el informe en `data/reports/quality/`; sale con
+código 1 si algún conjunto queda bloqueado por errores críticos.
+
 ## Pruebas
 
 ```bash
@@ -55,3 +65,5 @@ contra el terminal real (solo lectura).
 
 - [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md): entorno, especificaciones del símbolo e historial real.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): estructura, flujo y decisiones pendientes.
+- [docs/TIMEZONE.md](docs/TIMEZONE.md): hora del servidor = Nueva York + 7 h y regla de conversión.
+- [docs/DATA_DICTIONARY.md](docs/DATA_DICTIONARY.md): almacén, columnas, convención horaria, calendario y calidad.

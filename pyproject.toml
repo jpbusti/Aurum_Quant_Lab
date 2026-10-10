@@ -7,12 +7,13 @@ name = "aurum-quant-lab"
 version = "0.1.0"
 description = "Laboratorio de investigación, backtesting y validación de estrategias XAU/USD sobre MetaTrader 5"
 requires-python = ">=3.12,<3.13"
-# Fase A: solo lo necesario para inspeccionar el entorno.
-# pandas y pyarrow se añadirán en la fase B (ingesta a Parquet).
+# numpy y PyYAML desde la fase A; pandas y pyarrow desde la fase B (Parquet).
 dependencies = [
     "MetaTrader5>=5.0.5000; sys_platform == 'win32'",
-    "numpy>=1.26,<2",
+    "numpy>=2.0",
     "PyYAML>=6.0",
+    "pandas>=2.2,<3",
+    "pyarrow>=15",
 ]
 
 [project.optional-dependencies]
