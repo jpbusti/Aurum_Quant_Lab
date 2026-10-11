@@ -46,6 +46,7 @@ class SegmentResult:
     daily: pd.Series
     span_days: float
     stats: dict
+    rejections: pd.DataFrame | None = None
 
 
 def run_segment(bt: Backtester, m1: pd.DataFrame, signals: Sequence[Signal], seg: Segment) -> SegmentResult:
@@ -57,7 +58,7 @@ def run_segment(bt: Backtester, m1: pd.DataFrame, signals: Sequence[Signal], seg
     r = bt.run(bars, sigs)
     daily = M.daily_equity(r.equity, bt.risk.initial_balance)
     span = (min(seg.end, int(t[b - 1]) + 60) - seg.start) / 86400
-    return SegmentResult(r.trades, daily, span, r.stats)
+    return SegmentResult(r.trades, daily, span, r.stats, r.rejections)
 
 
 def aggregate(results: dict[str, SegmentResult], labels: list[str], initial: float,

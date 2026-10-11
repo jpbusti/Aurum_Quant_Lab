@@ -20,3 +20,5 @@ logs/*
 experiments/*/results.*
 experiments/*/placebo.*
 experiments/*/*.log
+experiments/*/*.csv
+experiments/*/*.parquet

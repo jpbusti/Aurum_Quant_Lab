@@ -1,6 +1,6 @@
 # Arquitectura de AURUM Quant Lab
 
-Estado: **fases A a E completadas** con dos rondas de hipótesis: las 6 candidatas, REJECTED (docs/PHASE_E_RESULTS.md y docs/RONDA2_RESULTS.md). Pendiente: comprobación horaria en vivo, ruptura de Londres y paper trading (fase G). El resto es diseño; cada módulo se
+Estado: **fases A a E completadas** con dos rondas de hipótesis: las 6 candidatas, REJECTED (docs/PHASE_E_RESULTS.md y docs/RONDA2_RESULTS.md). Auditoría post-fase E y viabilidad preliminar en docs/AUDIT_POST_E.md y docs/PHASE_H_VIABILITY.md. Pendiente: comprobación horaria en vivo y paper trading (fase G). El resto es diseño; cada módulo se
 crea en su fase y solo cuando pasan las pruebas de la anterior.
 
 ## Principios

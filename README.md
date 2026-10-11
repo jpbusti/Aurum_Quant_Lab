@@ -15,9 +15,9 @@ refutar, no un resultado: ningún informe de este proyecto garantiza beneficios 
 | C | Motor de backtesting y pruebas | hecha |
 | D | Estrategias de referencia | rondas 1 y 2 hechas |
 | E | Evaluación estadística y walk-forward | ronda 1 y filtro de la ronda 2 hechos: 6 candidatas REJECTED |
-| F | Selección de candidatos | pendiente |
-| G | Paper trading en demo | pendiente |
-| H | Viabilidad de capital | pendiente |
+| F | Familias con FDR, DSR y PBO | hecha: 224 variantes, ninguna familia con edge; línea M15 cerrada |
+| G | Paper trading en demo | en diseño: alertas de máximo y mínimo del día anterior, sin órdenes |
+| H | Viabilidad de capital | preliminar (sin estrategia validada) |
 
 ## Instalación (Windows)
 
@@ -78,4 +78,8 @@ contra el terminal real (solo lectura) y contra los datos descargados.
 - [docs/STRATEGY_RESEARCH.md](docs/STRATEGY_RESEARCH.md): fichas de las referencias y candidatas, y registro de variantes.
 - [docs/PREREGISTRO_PHASE_E.md](docs/PREREGISTRO_PHASE_E.md) y [docs/PHASE_E_RESULTS.md](docs/PHASE_E_RESULTS.md): evaluación pre-registrada y resultados.
 - [docs/PREREGISTRO_RONDA2.md](docs/PREREGISTRO_RONDA2.md) y [docs/RONDA2_RESULTS.md](docs/RONDA2_RESULTS.md): ronda 2 (prueba final gastada, paper como evidencia principal) y su filtro.
+- [docs/AUDIT_POST_E.md](docs/AUDIT_POST_E.md) y [docs/PHASE_H_VIABILITY.md](docs/PHASE_H_VIABILITY.md): auditoría post-fase E (riesgo del 0,5 % frente al 2 %, capas de señal y capital) y viabilidad de capital.
 - [docs/BACKTEST_ENGINE.md](docs/BACKTEST_ENGINE.md): reglas de ejecución, alineación sin fuga, riesgo y pruebas del motor.
+- [docs/VERIFICACION_TESTER.md](docs/VERIFICACION_TESTER.md): verificación independiente del motor con el Strategy Tester de MT5.
+- [docs/PREREGISTRO_PHASE_F.md](docs/PREREGISTRO_PHASE_F.md), [docs/FAMILIES_RESEARCH.md](docs/FAMILIES_RESEARCH.md) y [docs/PHASE_F_FAMILIES.md](docs/PHASE_F_FAMILIES.md): fase F y cierre de la investigación en M15.
+- [docs/GUIA_DEL_PROYECTO.md](docs/GUIA_DEL_PROYECTO.md): guía general del proyecto.

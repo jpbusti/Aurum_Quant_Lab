@@ -18,6 +18,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+# Fase F: solo para contrastar las correcciones estadísticas propias (docs/PREREGISTRO_PHASE_F.md).
+stats = ["jsharpe==0.6.3", "nullius==0.1.0"]
 
 [project.scripts]
 aurum = "aurum.cli:main"

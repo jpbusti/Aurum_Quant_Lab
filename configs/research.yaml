@@ -5,6 +5,12 @@ registry_updated: "2026-10-10"
 variants_tested_total: 9
 phase_e: "docs/PHASE_E_RESULTS.md (pre-registro 9761a90)"
 ronda2: "docs/RONDA2_RESULTS.md (pre-registro 53b2818)"
+# Ejecuciones de sensibilidad que no crean variantes de señal nuevas (se cuentan aparte).
+sensitivity_runs:
+  audit_risk_2pct:
+    preregistration: "docs/PREREGISTRO_AUDIT_RISK.md (e7bf24b)"
+    runs: 9            # las 9 variantes con riesgo del 2 % sobre 10 000 USD
+    results: "docs/AUDIT_POST_E.md"
 
 strategies:
   REF-NOTRADE-v1:
@@ -104,3 +110,28 @@ not_implemented:
     reason: >-
       Ronda 1: sin volumen real verificado. En la ronda 2 se implementa como CAND-VWAP-MR-v1 con
       tick_volume, documentando la limitación.
+
+# Fase F: familias con corrección por pruebas múltiples (docs/PREREGISTRO_PHASE_F.md).
+# variants_tested_total (arriba) cuenta las estrategias individuales de las fases D y E;
+# el número de pruebas del proyecto para el DSR es project_trials_total.
+phase_f:
+  registered: "2026-10-11"
+  preregistration: docs/PREREGISTRO_PHASE_F.md
+  families_doc: docs/FAMILIES_RESEARCH.md
+  code: src/aurum/strategies/families.py
+  families:
+    TREND:
+      logic: cruce de medias simples M15, stop k*ATR(14), cierre por tiempo
+      grid: {fast: [5, 10, 20, 40], slow: [50, 100, 200], stop_atr: [1.5, 3.0], max_hold_h: [8, 24, 72]}
+      variants: 72
+    MEANREV:
+      logic: z-score del cierre cruza +-k, objetivo en la media, stop s*ATR(14), cierre por tiempo
+      grid: {lookback: [20, 50, 100, 200], z_entry: [1.5, 2.0, 2.5, 3.0], stop_atr: [2.0, 4.0], max_hold_h: [4, 24]}
+      variants: 64
+    CALENDAR:
+      logic: lado fijo a una hora de Nueva York durante h horas, stop 3*ATR(14)
+      grid: {ny_hour: "0-23 salvo 17 y 18", side: [compra, venta], hold_h: [1, 4]}
+      variants: 88
+  variants_total: 224
+  project_trials_total: 233
+  status: "ejecutada el 2026-10-11: TREND SIN_EDGE, MEANREV SIN_EDGE, CALENDAR INCONCLUSO (2 pasan FDR por artefacto de swap, 0 DSR); línea cerrada (docs/PHASE_F_FAMILIES.md)"
